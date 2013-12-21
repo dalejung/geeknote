@@ -115,10 +115,12 @@ class GNSync:
         notes = self._get_notes()
 
         def _match_note(f, filedata):
-            for n in notes:
-                # try to match on guid
-                if n.guid == filedata.get('evernoteguid', None):
-                    return n
+            guid = filedata.get('evernoteguid', None)
+            if not guid:
+                return None
+            n = GeekNote().getNote(guid)
+            if n:
+                return n
 
         for file_note in files:
             filedata = self._get_filedata(file_note)
@@ -156,6 +158,7 @@ class GNSync:
 
         note.title = filedata['title']
         note.content = filedata['content']
+        note.updated = file_note['mtime']
         result = GeekNote().updateNote(note)
 
         if result:
