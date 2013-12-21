@@ -186,6 +186,11 @@ class GeekNote(object):
         note.content = self.getNoteStore().getNoteContent(self.authToken, note.guid)
 
     @EdamException
+    def getNote(self, guid, with_content=False):
+        note = self.getNoteStore().getNote(self.authToken, guid, with_content, False, False, False)
+        return note
+
+    @EdamException
     def createNote(self, title, content, tags=None, notebook=None, created=None, attributes=None):
         na = None
         if attributes:
