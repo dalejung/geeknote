@@ -5,6 +5,7 @@ import os, sys
 import argparse
 import glob
 import logging
+import codecs
 
 import markdown
 
@@ -26,10 +27,7 @@ logger.addHandler(handler)
 
 def log(func):
     def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception, e:
-            logger.error("%s", str(e))
+        return func(*args, **kwargs)
     return wrapper
 
 @log
@@ -145,7 +143,7 @@ class GNSync:
         out = metamod.add_evernote_guid(content, md, guid)
         if not out:
             return
-        with open(filedata['path'], 'w') as file:
+        with codecs.open(filedata['path'], mode='w', encoding='utf-8') as file:
             file.write(out)
         print filedata['title'], 'updated with EvernoteGUID'
 
@@ -201,7 +199,7 @@ class GNSync:
 
     @log
     def _get_filedata(self, f):
-        content = open(f['path'], "r").read()
+        content = codecs.open(f['path'], mode="r", encoding='utf-8').read()
         if content is None:
             logger.warning("File {0}. Content must be an UTF-8 encode.".format(path))
             return None
@@ -280,32 +278,25 @@ class GNSync:
 
 
 def main():
-    try:
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--path', '-p', action='store', help='Path to synchronize directory')
-        parser.add_argument('--mask', '-m', action='store', help='Mask of files to synchronize. Default is "*.*"')
-        parser.add_argument('--format', '-f', action='store', default='plain', choices=['plain', 'markdown'], help='The format of the file contents. Default is "plain". Valid values ​​are "plain" and "markdown"')
-        parser.add_argument('--notebook', '-n', action='store', help='Notebook name for synchronize. Default is default notebook')
-        parser.add_argument('--logpath', '-l', action='store', help='Path to log file. Default is GeekNoteSync in home dir')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path', '-p', action='store', help='Path to synchronize directory')
+    parser.add_argument('--mask', '-m', action='store', help='Mask of files to synchronize. Default is "*.*"')
+    parser.add_argument('--format', '-f', action='store', default='plain', choices=['plain', 'markdown'], help='The format of the file contents. Default is "plain". Valid values ​​are "plain" and "markdown"')
+    parser.add_argument('--notebook', '-n', action='store', help='Notebook name for synchronize. Default is default notebook')
+    parser.add_argument('--logpath', '-l', action='store', help='Path to log file. Default is GeekNoteSync in home dir')
 
-        args = parser.parse_args()
+    args = parser.parse_args()
 
-        path = args.path if args.path else None
-        mask = args.mask if args.mask else None
-        format = args.format if args.format else None
-        notebook = args.notebook if args.notebook else None
-        logpath = args.logpath if args.logpath else None
+    path = args.path if args.path else None
+    mask = args.mask if args.mask else None
+    format = args.format if args.format else None
+    notebook = args.notebook if args.notebook else None
+    logpath = args.logpath if args.logpath else None
 
-        reset_logpath(logpath)
+    reset_logpath(logpath)
 
-        GNS = GNSync(notebook, path, mask, format)
-        GNS.sync()
-
-    except (KeyboardInterrupt, SystemExit, tools.ExitException):
-        pass
-
-    except Exception, e:
-        logger.error(str(e));
+    GNS = GNSync(notebook, path, mask, format)
+    GNS.sync()
 
 if __name__ == "__main__":
     main()
