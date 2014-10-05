@@ -153,7 +153,7 @@ class SyncState(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in list(self.__dict__.items())]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -573,7 +573,7 @@ class SyncChunk(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in list(self.__dict__.items())]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -871,7 +871,7 @@ class SyncChunkFilter(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in list(self.__dict__.items())]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -1065,7 +1065,7 @@ class NoteFilter(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in list(self.__dict__.items())]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -1265,7 +1265,7 @@ class NoteList(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in list(self.__dict__.items())]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -1488,7 +1488,7 @@ class NoteMetadata(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in list(self.__dict__.items())]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -1692,7 +1692,7 @@ class NotesMetadataList(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in list(self.__dict__.items())]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -1883,7 +1883,7 @@ class NotesMetadataResultSpec(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in list(self.__dict__.items())]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -1986,7 +1986,7 @@ class NoteCollectionCounts(object):
     if self.notebookCounts is not None:
       oprot.writeFieldBegin('notebookCounts', TType.MAP, 1)
       oprot.writeMapBegin(TType.STRING, TType.I32, len(self.notebookCounts))
-      for kiter147,viter148 in self.notebookCounts.items():
+      for kiter147,viter148 in list(self.notebookCounts.items()):
         oprot.writeString(kiter147)
         oprot.writeI32(viter148)
       oprot.writeMapEnd()
@@ -1994,7 +1994,7 @@ class NoteCollectionCounts(object):
     if self.tagCounts is not None:
       oprot.writeFieldBegin('tagCounts', TType.MAP, 2)
       oprot.writeMapBegin(TType.STRING, TType.I32, len(self.tagCounts))
-      for kiter149,viter150 in self.tagCounts.items():
+      for kiter149,viter150 in list(self.tagCounts.items()):
         oprot.writeString(kiter149)
         oprot.writeI32(viter150)
       oprot.writeMapEnd()
@@ -2012,7 +2012,7 @@ class NoteCollectionCounts(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in list(self.__dict__.items())]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -2125,7 +2125,7 @@ class AdImpressions(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in list(self.__dict__.items())]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -2261,7 +2261,7 @@ class AdParameters(object):
     if self.clientProperties is not None:
       oprot.writeFieldBegin('clientProperties', TType.MAP, 6)
       oprot.writeMapBegin(TType.STRING, TType.STRING, len(self.clientProperties))
-      for kiter165,viter166 in self.clientProperties.items():
+      for kiter165,viter166 in list(self.clientProperties.items()):
         oprot.writeString(kiter165)
         oprot.writeString(viter166)
       oprot.writeMapEnd()
@@ -2275,7 +2275,7 @@ class AdParameters(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in list(self.__dict__.items())]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -2459,7 +2459,7 @@ class NoteEmailParameters(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in list(self.__dict__.items())]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):
@@ -2594,7 +2594,7 @@ class NoteVersionId(object):
 
   def __repr__(self):
     L = ['%s=%r' % (key, value)
-      for key, value in self.__dict__.iteritems()]
+      for key, value in list(self.__dict__.items())]
     return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
 
   def __eq__(self, other):

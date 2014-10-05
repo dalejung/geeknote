@@ -39,7 +39,7 @@ NOTE_URL = "https://%domain%/Home.action?#n=%s"
 try:
     if not os.path.exists(APP_DIR):
         os.mkdir(APP_DIR)
-except Exception, e:
+except Exception as e:
     sys.stdout.write("Can not create application dirictory : %s" % APP_DIR)
     exit()
 

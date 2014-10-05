@@ -1,17 +1,23 @@
 # -*- coding: utf-8 -*-
 
 import os, sys
-import httplib
+try:
+    import httplib
+    import Cookie
+    from urllib import urlencode, unquote
+    from urlparse import urlparse
+except ImportError:
+    import http.client as httplib
+    import http.cookies as Cookie
+    from urllib.parse import urlencode, unquote
+    import urllib.parse as urlparse
 import time
-import Cookie
 import uuid
-from log import logging
-from urllib import urlencode, unquote
-from urlparse import urlparse
+from .log import logging
 
-import out
-import tools
-import config
+from . import out
+from . import tools
+from . import config
 
 class GeekNoteAuth(object):
 
@@ -60,10 +66,10 @@ class GeekNoteAuth(object):
         }
 
         if kwargs:
-            params = dict(params.items() + kwargs.items())
-        
+            params = dict(list(params.items()) + list(kwargs.items()))
+
         return params
-    
+
     def loadPage(self, url, uri=None, method="GET", params=""):
         if not url:
             logging.error("Request URL undefined")
@@ -83,7 +89,7 @@ class GeekNoteAuth(object):
 
         # insert local cookies in request
         headers = {
-            "Cookie": '; '.join( [ key+'='+self.cookies[key] for key in self.cookies.keys() ] )
+            "Cookie": '; '.join( [ key+'='+self.cookies[key] for key in list(self.cookies.keys()) ] )
         }
 
         if method == "POST":
@@ -108,6 +114,8 @@ class GeekNoteAuth(object):
         return result
 
     def parseResponse(self, data):
+        if isinstance(data, bytes):
+            data = data.decode('utf-8')
         data = unquote(data)
         return dict( item.split('=', 1) for item in data.split('?')[-1].split('&') )
 
@@ -129,7 +137,7 @@ class GeekNoteAuth(object):
 
 
     def getTmpOAuthToken(self):
-        response = self.loadPage(self.url['base'], self.url['token'], "GET", 
+        response = self.loadPage(self.url['base'], self.url['token'], "GET",
             self.getTokenRequestData(oauth_callback="https://"+self.url['base']))
 
         if response.status != 200:
@@ -137,7 +145,7 @@ class GeekNoteAuth(object):
             tools.exit()
 
         responseData = self.parseResponse(response.data)
-        if not responseData.has_key('oauth_token'):
+        if 'oauth_token' not in responseData:
             logging.error("OAuth temporary not found")
             tools.exit()
 
@@ -152,7 +160,7 @@ class GeekNoteAuth(object):
             logging.error("Unexpected response status on login 200 != %s", response.status)
             tools.exit()
 
-        if not self.cookies.has_key('JSESSIONID'):
+        if 'JSESSIONID' not in self.cookies:
             logging.error("Not found value JSESSIONID in the response cookies")
             tools.exit()
 
@@ -162,7 +170,7 @@ class GeekNoteAuth(object):
         self.postData['login']['username'] = self.username
         self.postData['login']['password'] = self.password
         self.postData['login']['targetUrl'] = self.url['oauth']%self.tmpOAuthToken
-        response = self.loadPage(self.url['base'], self.url['login']+";jsessionid="+self.cookies['JSESSIONID'], "POST", 
+        response = self.loadPage(self.url['base'], self.url['login']+";jsessionid="+self.cookies['JSESSIONID'], "POST",
             self.postData['login'])
 
         if not response.location and response.status == 200:
@@ -194,7 +202,7 @@ class GeekNoteAuth(object):
             tools.exit()
 
         responseData = self.parseResponse(response.location)
-        if not responseData.has_key('oauth_verifier'):
+        if 'oauth_verifier' not in responseData:
             logging.error("OAuth verifier not found")
             tools.exit()
 
@@ -205,7 +213,7 @@ class GeekNoteAuth(object):
         #self.getOAuthToken(verifier)
 
     def getOAuthToken(self):
-        response = self.loadPage(self.url['base'], self.url['token'], "GET",  
+        response = self.loadPage(self.url['base'], self.url['token'], "GET",
             self.getTokenRequestData(oauth_token=self.tmpOAuthToken, oauth_verifier=self.verifierToken))
 
         if response.status != 200:
@@ -213,7 +221,7 @@ class GeekNoteAuth(object):
             tools.exit()
 
         responseData = self.parseResponse(response.data)
-        if not responseData.has_key('oauth_token'):
+        if 'oauth_token' not in responseData:
             logging.error("OAuth token not found")
             tools.exit()
 

@@ -3,10 +3,13 @@
 import os, sys
 import getpass
 import time
-import thread
-import tools
-import editor
-import config
+try:
+    import thread
+except ImportError:
+    import _thread as thread
+from . import tools
+from . import editor
+from . import config
 
 def preloaderPause(fn, *args, **kwargs):
     def wrapped(*args, **kwargs):
@@ -217,9 +220,9 @@ def rawInput(message, isPass=False):
     if isPass:
         data = getpass.getpass(message)
     else:
-        data = raw_input(message)
+        data = input(message)
     return tools.stdinEncode(data)
-    
+
 
 def printDate(timestamp):
     return time.strftime("%d.%m.%Y", time.localtime(timestamp/1000))

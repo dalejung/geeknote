@@ -2,7 +2,7 @@
 
 import os, sys
 import logging
-import config
+from . import config
 
 if config.DEBUG:
     logging.basicConfig(format="%(filename)s %(funcName)s %(lineno)d : %(message)s", level=logging.DEBUG)

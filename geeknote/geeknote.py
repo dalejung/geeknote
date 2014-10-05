@@ -1,41 +1,42 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import os, sys
 import traceback
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append( os.path.join(PROJECT_ROOT, 'lib') )
 
-import config
+from . import config
 
 import hashlib
 import binascii
 import time
 from datetime import datetime
-from urlparse import urlparse
+try:
+    from urlparse import urlparse
+except:
+    import urllib.parse as urlparse
+
 import re
-import lib.thrift.protocol.TBinaryProtocol as TBinaryProtocol
-import lib.thrift.transport.THttpClient as THttpClient
-import lib.evernote.edam.userstore.UserStore as UserStore
-import lib.evernote.edam.userstore.constants as UserStoreConstants
-import lib.evernote.edam.notestore.NoteStore as NoteStore
-import lib.evernote.edam.type.ttypes as Types
-import lib.evernote.edam.error.ttypes as Errors
+import thrift.protocol.TBinaryProtocol as TBinaryProtocol
+import thrift.transport.THttpClient as THttpClient
+import geeknote.lib.evernote.edam.userstore.UserStore as UserStore
+import geeknote.lib.evernote.edam.userstore.constants as UserStoreConstants
+import geeknote.lib.evernote.edam.notestore.NoteStore as NoteStore
+import geeknote.lib.evernote.edam.type.ttypes as Types
+import geeknote.lib.evernote.edam.error.ttypes as Errors
 
 import locale
 import time
 import signal
 
-import out
-from argparser import argparser
+import geeknote.out as out
+from .argparser import argparser
 
-from oauth import GeekNoteAuth
+from .oauth import GeekNoteAuth
 
-from storage import Storage
-import editor
-import tools
-from log import logging
+from .storage import Storage
+from . import editor
+from . import tools
+from .log import logging
 
 
 # decorator to disable evernote connection on create instance of GeekNote
@@ -74,10 +75,10 @@ class GeekNote(object):
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except Exception, e:
+            except Exception as e:
                 logging.error("Error: %s : %s", func.__name__, str(e))
 
-                print e, func.__name__, args, kwargs
+                print((e, func.__name__, args, kwargs))
                 if not hasattr(e, 'errorCode'):
                     out.failureMessage("Sorry, operation has failed!!!.")
                     tools.exit()
@@ -195,7 +196,7 @@ class GeekNote(object):
         na = None
         if attributes:
             na = Types.NoteAttributes()
-            for k, v in attributes.items():
+            for k, v in list(attributes.items()):
                 setattr(na, k, v)
 
         note = Types.Note()
@@ -229,7 +230,7 @@ class GeekNote(object):
 
         na = Types.NoteAttributes()
         if attributes:
-            for k, v in attributes.items():
+            for k, v in list(attributes.items()):
                 setattr(na, k, v)
 
         note = Types.Note()
@@ -727,7 +728,7 @@ class Notes(GeekNoteConnector):
                 if len(date) == 2:
                     dateStruct = time.strptime(date[1]+" 00:00:00", "%d.%m.%Y %H:%M:%S")
                 request += '-created:%s ' % time.strftime("%Y%m%d", time.localtime(time.mktime(dateStruct)+60*60*24))
-            except ValueError, e:
+            except ValueError as e:
                 out.failureMessage('Incorrect date format in --date attribute. Format: %s' % time.strftime("%d.%m.%Y", time.strptime('19991231', "%Y%m%d")))
                 return tools.exit()
 
@@ -851,7 +852,7 @@ def main(args=None):
     except (KeyboardInterrupt, SystemExit, tools.ExitException):
         pass
 
-    except Exception, e:
+    except Exception as e:
         traceback.print_exc()
         logging.error("App error: %s", str(e))
 

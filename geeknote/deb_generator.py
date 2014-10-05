@@ -43,7 +43,7 @@ for root, dirs, files in os.walk(dir_name):
 project_files = ["geeknote.py", "gnsync.py" ,"argparser.py", "editor.py", "log.py", "oauth.py", "out.py", "storage.py", "tools.py", "config.py"]
 items[install_dir].extend(project_files)
 
-for key, value in items.items():
+for key, value in list(items.items()):
 	p[key] = value
 
 # start deb generating

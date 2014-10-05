@@ -9,11 +9,11 @@ import codecs
 
 import markdown
 
-from geeknote import GeekNote
-from storage import Storage
-import editor
-import tools
-import meta as metamod
+from geeknote.geeknote import GeekNote
+from geeknote.storage import Storage
+import geeknote.editor as editor
+import geeknote.tools as tools
+import geeknote.meta as metamod
 
 # set default logger (write log to file)
 def_logpath = os.path.join(os.getenv('USERPROFILE') or os.getenv('HOME'),  'GeekNoteSync.log')
@@ -145,7 +145,7 @@ class GNSync:
             return
         with codecs.open(filedata['path'], mode='w', encoding='utf-8') as file:
             file.write(out)
-        print filedata['title'], 'updated with EvernoteGUID'
+        print((filedata['title'], 'updated with EvernoteGUID'))
 
     @log
     def _update_note(self, file_note, note):
@@ -211,7 +211,7 @@ class GNSync:
         filedata = {}
         filedata['content'] = enml
         filedata['title'] = f['name']
-        for k, v in meta.items():
+        for k, v in list(meta.items()):
             if not v: continue
             # metadata values are always lists
             filedata[k] = v.pop()

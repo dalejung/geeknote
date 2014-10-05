@@ -64,7 +64,7 @@ def add_evernote_guid(content, md, evernote_id):
         return
 
     outlines = []
-    for key, lines in meta_lines.iteritems():
+    for key, lines in list(meta_lines.items()):
         line = lines[0]
         outlines.append(line)
 

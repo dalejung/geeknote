@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import out
-from log import logging
+from .log import logging
 import sys
 import shlex
 import time
 
 def checkIsInt(value):
-    try: 
+    try:
         int(value)
         return True
     except ValueError:
@@ -37,20 +36,21 @@ def strip(data):
         return data
 
     if isinstance(data, dict):
-        return dict([ [key.strip(' \t\n\r\"\''), val ] for key, val in data.iteritems() ])
+        return dict([ [key.strip(' \t\n\r\"\''), val ] for key, val in list(data.items()) ])
 
     if isinstance(data, list):
-        return map(lambda val: val.strip(' \t\n\r\"\''), data)
+        return [val.strip(' \t\n\r\"\'') for val in data]
 
     if isinstance(data, str):
         return data.strip(' \t\n\r\"\'')
-    
+
     raise Exception("Unexpected args type: %s. Expect list or dict" % type(data))
 
 class ExitException(Exception):
     pass
 
 def exit(message='exit'):
+    import geeknote.out as out
     out.preloader.exit()
     time.sleep(0.33)
     raise ExitException(message)
@@ -59,11 +59,11 @@ def KeyboardInterruptSignalHendler(signal, frame):
     exit()
 
 class Struct:
-    def __init__(self, **entries): 
+    def __init__(self, **entries):
         self.__dict__.update(entries)
 
 def decodeArgs(args):
-    return map(lambda val: stdinEncode(val), args)
+    return [stdinEncode(val) for val in args]
 
 def stdoutEncode(data):
     try:

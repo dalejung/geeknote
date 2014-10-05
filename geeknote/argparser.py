@@ -2,8 +2,8 @@
 
 import os, sys
 
-from log import logging
-import out
+from .log import logging
+from . import out
 
 COMMANDS_DICT = {
     # User
@@ -156,13 +156,13 @@ class argparser(object):
         self.INPUT = sys_argv
 
         #список команд
-        self.CMD_LIST = self.COMMANDS.keys()
+        self.CMD_LIST = list(self.COMMANDS.keys())
         # введенная команда
         self.CMD = None if self.LVL == 0 else self.INPUT[0]
         # список возможных аргументов введенной команды
-        self.CMD_ARGS  = self.COMMANDS[self.CMD]['arguments'] if self.LVL > 0 and self.COMMANDS.has_key(self.CMD) and self.COMMANDS[self.CMD].has_key('arguments') else {}
+        self.CMD_ARGS  = self.COMMANDS[self.CMD]['arguments'] if self.LVL > 0 and self.COMMANDS.get(self.CMD, None) and self.COMMANDS[self.CMD].get('arguments', None) else {}
         # список возможных флагов введенной команды
-        self.CMD_FLAGS = self.COMMANDS[self.CMD]['flags'] if self.LVL > 0 and self.COMMANDS.has_key(self.CMD) and self.COMMANDS[self.CMD].has_key('flags') else {}
+        self.CMD_FLAGS = self.COMMANDS[self.CMD]['flags'] if self.LVL > 0 and self.COMMANDS.get(self.CMD, None) and self.COMMANDS[self.CMD].get('flags', None) else {}
         # список введенных аргументов и их значений
         self.INP = [] if self.LVL <= 1 else self.INPUT[1:]
 
@@ -190,7 +190,7 @@ class argparser(object):
             self.printHelp()
             return False
 
-        if not self.COMMANDS.has_key(self.CMD):
+        if not self.COMMANDS.get(self.CMD, None):
             self.printErrorCommand()
             return False
 
@@ -199,38 +199,38 @@ class argparser(object):
             return False
 
         # Подготовка данных
-        for arg, params in (self.CMD_ARGS.items() + self.CMD_FLAGS.items()):
+        for arg, params in (list(self.CMD_ARGS.items()) + list(self.CMD_FLAGS.items())):
             # установка значений по умолчаеию
-            if params.has_key('default'):
+            if 'default' in params:
                 self.INP_DATA[arg] = params['default']
 
             # замена altName во входящих аргументах на полные
-            if params.has_key('altName') and params['altName'] in self.INP:
+            if 'altName' in params and params['altName'] in self.INP:
                 self.INP[self.INP.index(params['altName'])] = arg
 
         activeArg = None
         ACTIVE_CMD = None
         # проверяем и подставляем первый адгумент по умолчанию
-        if self.COMMANDS[self.CMD].has_key('firstArg'):
+        if 'firstArg' in self.COMMANDS[self.CMD]:
             firstArg = self.COMMANDS[self.CMD]['firstArg']
             if len(self.INP) > 0:
                 # смотрим что первое знаение не аргумент по умолчанию, а другой аргумент
-                if self.INP[0] not in (self.CMD_ARGS.keys() + self.CMD_FLAGS.keys()):
+                if self.INP[0] not in (list(self.CMD_ARGS.keys()) + list(self.CMD_FLAGS.keys())):
                     self.INP = [firstArg, ] + self.INP
             else:
                 self.INP = [firstArg, ]
-        
+
 
         for item in self.INP:
             # Проверяем что ожидаем аргумент
             if activeArg is None:
                 # Действия для аргумента
-                if self.CMD_ARGS.has_key(item):
+                if item in self.CMD_ARGS:
                     activeArg = item
                     ACTIVE_CMD = self.CMD_ARGS[activeArg]
 
                 # Действия для флага
-                elif self.CMD_FLAGS.has_key(item):
+                elif item in self.CMD_FLAGS:
                     self.INP_DATA[item] = self.CMD_FLAGS[item]["value"]
 
                 # Ошибка параметр не найден
@@ -241,9 +241,9 @@ class argparser(object):
             else:
                 activeArgTmp = None
                 # Значения является параметром
-                if self.CMD_ARGS.has_key(item) or self.CMD_FLAGS.has_key(item):
+                if item in self.CMD_ARGS or item in self.CMD_FLAGS:
                     # "Активный" аргумент имеет параметр emptyValue
-                    if ACTIVE_CMD.has_key("emptyValue"):
+                    if "emptyValue" in ACTIVE_CMD:
                         activeArgTmp = item # запоминаем новый "активный" аргумент
                         item = ACTIVE_CMD['emptyValue'] # подменяем значение на emptyValue
                     # Ошибка, "активный" аргумент не имеет значений
@@ -251,7 +251,7 @@ class argparser(object):
                         self.printErrorArgument(activeArg, item)
                         return False
 
-                if ACTIVE_CMD.has_key("type"):
+                if "type" in ACTIVE_CMD:
                     convType = ACTIVE_CMD['type']
                     if convType not in (int, str):
                         logging.error("Unsupported argument type: %s", convType)
@@ -269,7 +269,7 @@ class argparser(object):
         # если остались "активные" аршументы
         if activeArg is not None:
             # если есть параметр emptyValue
-            if ACTIVE_CMD.has_key("emptyValue"):
+            if "emptyValue" in ACTIVE_CMD:
                 self.INP_DATA[activeArg] = ACTIVE_CMD['emptyValue']
 
             # инече ошибка
@@ -278,13 +278,13 @@ class argparser(object):
                 return False
 
         # проверка, присутствует ли необходимый аргумент запросе
-        for arg, params in (self.CMD_ARGS.items() + self.CMD_FLAGS.items()):
-            if params.has_key('required') and arg not in self.INP:
+        for arg, params in (list(self.CMD_ARGS.items()) + list(self.CMD_FLAGS.items())):
+            if 'required' in params and arg not in self.INP:
                 self.printErrorReqArgument(arg)
                 return False
 
         # trim -- and ->_
-        self.INP_DATA = dict([key.lstrip("-").replace("-", "_"), val] for key, val in self.INP_DATA.items() )
+        self.INP_DATA = dict([key.lstrip("-").replace("-", "_"), val] for key, val in list(self.INP_DATA.items()) )
         return self.INP_DATA
 
 
@@ -292,7 +292,7 @@ class argparser(object):
         # последнее веденное значение
         LAST_VAL = self.INP[-1] if self.LVL > 1 else None
         PREV_LAST_VAL = self.INP[-2] if self.LVL > 2 else None
-        ARGS_FLAGS_LIST = self.CMD_ARGS.keys()+self.CMD_FLAGS.keys()
+        ARGS_FLAGS_LIST = list(self.CMD_ARGS.keys())+list(self.CMD_FLAGS.keys())
 
         # печатаем корневые команды
         if self.CMD is None:
@@ -314,16 +314,16 @@ class argparser(object):
         else:
 
             # фильтруем аргументы которые еще не ввели
-            if self.CMD_ARGS.has_key(PREV_LAST_VAL) or self.CMD_FLAGS.has_key(LAST_VAL) :
-                self.printGrid([item for item in ARGS_FLAGS_LIST if item not in self.INP]) 
+            if PREV_LAST_VAL in self.CMD_ARGS or LAST_VAL in self.CMD_FLAGS :
+                self.printGrid([item for item in ARGS_FLAGS_LIST if item not in self.INP])
 
             # автозаполнение для неполной команды
-            elif not self.CMD_ARGS.has_key(PREV_LAST_VAL):
+            elif PREV_LAST_VAL not in self.CMD_ARGS:
                 self.printGrid([item for item in ARGS_FLAGS_LIST if item not in self.INP and item.startswith(LAST_VAL)])
 
             # обработка аргумента
             else:
-                print "" #"Please_input_%s" % INP_ARG.replace('-', '')
+                print("") #"Please_input_%s" % INP_ARG.replace('-', '')
 
     def printGrid(self, list):
         out.printLine(" ".join(list))
@@ -344,22 +344,22 @@ class argparser(object):
         self.printHelp()
 
     def printHelp(self):
-        if self.CMD is None or not self.COMMANDS.has_key(self.CMD):
-            tab = len(max(self.COMMANDS.keys(), key=len))
+        if self.CMD is None or self.CMD not in self.COMMANDS:
+            tab = len(max(list(self.COMMANDS.keys()), key=len))
             out.printLine("Available commands:")
             for cmd in self.COMMANDS:
                 out.printLine("%s : %s" % (cmd.rjust(tab, " "), self.COMMANDS[cmd]['help']))
 
         else:
 
-            tab = len(max(self.CMD_ARGS.keys()+self.CMD_FLAGS.keys(), key=len))
+            tab = len(max(list(self.CMD_ARGS.keys())+list(self.CMD_FLAGS.keys()), key=len))
 
             out.printLine("Options for: %s" % self.CMD)
             out.printLine("Available arguments:")
             for arg in self.CMD_ARGS:
                 out.printLine("%s : %s%s" % (
-                    arg.rjust(tab, " "), 
-                    '[default] ' if self.COMMANDS[self.CMD].has_key('firstArg') and self.COMMANDS[self.CMD]['firstArg'] == arg else '',
+                    arg.rjust(tab, " "),
+                    '[default] ' if 'firstArg' in self.COMMANDS[self.CMD] and self.COMMANDS[self.CMD]['firstArg'] == arg else '',
                     self.CMD_ARGS[arg]['help']))
 
             if self.CMD_FLAGS:

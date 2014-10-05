@@ -2,18 +2,18 @@
 
 import os, sys
 import tempfile
-import lib.html2text as html2text
-import markdown
-import tools
-import out
 import sys
 import os
 import re
-import config
-from storage import Storage
-from log import logging
-from fenced_code import FencedCodeExtension
-from meta import MetaExtension
+
+import html2text as html2text
+import markdown
+from . import tools
+from . import config
+from .storage import Storage
+from .log import logging
+from .fenced_code import FencedCodeExtension
+from .meta import MetaExtension
 
 
 def ENMLtoText(contentENML):
@@ -57,6 +57,7 @@ def textToENML(content, raise_ex=False):
             raise Exception("Error while parsing text to html. Content must be an UTF-8 encode.")
 
         logging.error("Error while parsing text to html. Content must be an UTF-8 encode.")
+        from . import out
         out.failureMessage("Error while parsing text to html. Content must be an UTF-8 encode.")
         return tools.exit()
 
@@ -96,6 +97,7 @@ def edit(content=None):
     # Make a system call to open file for editing.
     logging.debug("launch system editor: %s %s" % (editor, tmpFileName))
 
+    from . import out
     out.preloader.stop()
     os.system(editor + " " + tmpFileName)
     out.preloader.launch()
