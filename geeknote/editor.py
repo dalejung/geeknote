@@ -14,7 +14,7 @@ from storage import Storage
 from log import logging
 from fenced_code import FencedCodeExtension
 from meta import MetaExtension
-
+from markdown_checklist.extension import ChecklistExtension
 
 def ENMLtoText(contentENML):
     content = html2text.html2text(contentENML.decode('utf-8'))
@@ -28,7 +28,7 @@ def wrapENML(contentHTML):
     return body
 
 def convert_markdown(content):
-    md = markdown.Markdown(extensions=[MetaExtension(), FencedCodeExtension(), 'markdown_checklist.extension'])
+    md = markdown.Markdown(extensions=[MetaExtension(), FencedCodeExtension(), ChecklistExtension()])
     html = md.convert(content).encode("utf-8")
     # convert markdown_checklist into evernote
     # TODO create an evernote/markdown converter to skip the manual scrubbing

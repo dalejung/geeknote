@@ -17,11 +17,11 @@ from urlparse import urlparse
 import re
 import lib.thrift.protocol.TBinaryProtocol as TBinaryProtocol
 import lib.thrift.transport.THttpClient as THttpClient
-import lib.evernote.edam.userstore.UserStore as UserStore
-import lib.evernote.edam.userstore.constants as UserStoreConstants
-import lib.evernote.edam.notestore.NoteStore as NoteStore
-import lib.evernote.edam.type.ttypes as Types
-import lib.evernote.edam.error.ttypes as Errors
+import evernote.edam.userstore.UserStore as UserStore
+import evernote.edam.userstore.constants as UserStoreConstants
+import evernote.edam.notestore.NoteStore as NoteStore
+import evernote.edam.type.ttypes as Types
+import evernote.edam.error.ttypes as Errors
 
 import locale
 import time

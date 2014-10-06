@@ -6,6 +6,8 @@ from markdown.extensions import Extension
 from markdown.preprocessors import Preprocessor
 from collections import OrderedDict
 import re
+import datetime
+import time
 
 # Global Vars
 META_RE = re.compile(r'^[ ]{0,3}(?P<key>[A-Za-z0-9_-]+):\s*(?P<value>.*)')
@@ -60,16 +62,21 @@ def add_evernote_guid(content, md, evernote_id):
     meta = md.Meta
     meta_lines = md.MetaLines
 
-    if 'evernoteguid' in meta:
-        return
-
     outlines = []
     for key, lines in meta_lines.iteritems():
         line = lines[0]
+        # blah
+        if line.startswith('EvernoteGUID:'):
+            continue
+        if line.startswith('EvernoteUpdate:'):
+            continue
+
         outlines.append(line)
 
     outlines.append('EvernoteGUID: {evernote_id}'.format(evernote_id=evernote_id))
-    outlines.append('')
+    update = datetime.datetime.now() + datetime.timedelta(minutes=1)
+    update = update.strftime('%Y-%m-%d %H:%M')
+    outlines.append('EvernoteUpdate: {update}'.format(update=update))
 
     outlines.extend(md.MetaContent)
 

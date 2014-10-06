@@ -14,6 +14,9 @@ from storage import Storage
 import editor
 import tools
 import meta as metamod
+from dateutil.parser import parse
+import time
+
 
 # set default logger (write log to file)
 def_logpath = os.path.join(os.getenv('USERPROFILE') or os.getenv('HOME'),  'GeekNoteSync.log')
@@ -96,7 +99,7 @@ class GNSync:
         logger.info('Sync Start')
 
         #set notebook
-        self.notebook_guid, self.notebook_name = self._get_notebook(notebook_name, path)
+        #self.notebook_guid, self.notebook_name = self._get_notebook(notebook_name, path)
 
         # all is Ok
         self.all_set = True
@@ -110,24 +113,40 @@ class GNSync:
             return
 
         files =  self._get_files()
-        notes = self._get_notes()
 
-        def _match_note(f, filedata):
+        def _match_note(filedata):
             guid = filedata.get('evernoteguid', None)
             if not guid:
                 return None
-            n = GeekNote().getNote(guid)
+            try:
+                n = GeekNote().getNote(guid)
+            except:
+                return None
+
             if n:
                 return n
 
-        for file_note in files:
-            filedata = self._get_filedata(file_note)
-            note = _match_note(file_note, filedata)
-            note = self._process_note(file_note, note)
+        filedatas = list(map(self._get_filedata, files))
+        filedatas.sort(key=lambda x: x['date'], reverse=True)
+
+        for filedata in filedatas:
+            if not self._is_dirty(filedata):
+                print(filedata['title'], 'skipped')
+                continue
+
+            note = _match_note(filedata)
+            note = self._process_note(filedata, note)
             assert note.guid is not None
             self.add_evernote_guid(filedata, note.guid)
 
         logger.info('Sync Complete')
+
+    def _is_dirty(self, filedata):
+        if 'evernoteupdate' not in filedata:
+            return True
+        if 'mtime' not in filedata:
+            return True
+        return filedata['mtime'] > filedata['evernoteupdate']
 
     def _process_note(self, f, n):
         if n:
@@ -145,18 +164,21 @@ class GNSync:
             return
         with codecs.open(filedata['path'], mode='w', encoding='utf-8') as file:
             file.write(out)
-        print filedata['title'], 'updated with EvernoteGUID'
+        print(filedata['title'], 'updated with EvernoteGUID')
 
     @log
-    def _update_note(self, file_note, note):
+    def _update_note(self, filedata, note):
         """
         Updates note from file
         """
-        filedata = self._get_filedata(file_note)
+        created = filedata['mtime']
+        if 'date' in filedata:
+            created = filedata['date']
 
         note.title = filedata['title']
         note.content = filedata['content']
-        note.updated = file_note['mtime']
+        note.updated = filedata['mtime']
+        note.created = created
         result = GeekNote().updateNote(note)
 
         if result:
@@ -167,33 +189,34 @@ class GNSync:
         return result
 
     @log
-    def _create_note(self, file_note):
+    def _create_note(self, filedata):
         """
         Creates note from file
         """
-
-        filedata = self._get_filedata(file_note)
-
         if filedata is None:
             return
 
         attrs = {}
         attrs['sourceApplication'] = 'geeknote'
-        attrs['source'] = file_note['name']
+        attrs['source'] = filedata['file_name']
+
+        created = filedata['mtime']
+        if 'date' in filedata:
+            created = filedata['date']
 
         note = GeekNote().createNote(
             title=filedata['title'],
             content=filedata['content'],
             notebook=self.notebook_guid,
-            created=file_note['mtime'],
+            created=created,
             attributes=attrs
         )
 
 
         if note:
-            logger.info('Note "{0}" was created'.format(file_note['name']))
+            logger.info('Note "{0}" was created'.format(filedata['file_name']))
         else:
-            raise Exception('Note "{0}" was not created'.format(file_note['name']))
+            raise Exception('Note "{0}" was not created'.format(filedata['file_name']))
 
         return note
 
@@ -210,11 +233,21 @@ class GNSync:
 
         filedata = {}
         filedata['content'] = enml
+        filedata['file_name'] = f['name']
+        filedata['mtime'] = f['mtime']
         filedata['title'] = f['name']
         for k, v in meta.items():
             if not v: continue
             # metadata values are always lists
-            filedata[k] = v.pop()
+            filedata[k] = v[0]
+
+        if 'date' in filedata:
+            date = parse(filedata['date'])
+            filedata['date'] = int(time.mktime(date.timetuple())) * 1000
+
+        if 'evernoteupdate' in filedata:
+            date = parse(filedata['evernoteupdate'])
+            filedata['evernoteupdate'] = int(time.mktime(date.timetuple())) * 1000
 
         filedata['md'] = md
         filedata['path'] = f['path']
@@ -266,6 +299,7 @@ class GNSync:
 
                 files.append({'path': f,'name': file_name, 'mtime': mtime})
 
+        files.sort(key=lambda x: x['mtime'], reverse=True)
         return files
 
     @log
@@ -295,6 +329,7 @@ def main():
 
     reset_logpath(logpath)
 
+    print('path=', path)
     GNS = GNSync(notebook, path, mask, format)
     GNS.sync()
 
