@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 import os, sys
 import httplib
 import time
@@ -148,6 +149,10 @@ class GeekNoteAuth(object):
     def login(self):
         response = self.loadPage(self.url['base'], self.url['login'], "GET", {'oauth_token': self.tmpOAuthToken})
 
+        # parse hpts and hptsh from page content
+        hpts = re.search('.*\("hpts"\)\.value.*?"(.*?)"', response.data)
+        hptsh = re.search('.*\("hptsh"\)\.value.*?"(.*?)"', response.data)
+
         if response.status != 200:
             logging.error("Unexpected response status on login 200 != %s", response.status)
             tools.exit()
@@ -161,6 +166,8 @@ class GeekNoteAuth(object):
 
         self.postData['login']['username'] = self.username
         self.postData['login']['password'] = self.password
+        self.postData['login']['hpts'] = hpts and hpts.group(1) or ""
+        self.postData['login']['hptsh'] = hptsh and hptsh.group(1) or ""
         self.postData['login']['targetUrl'] = self.url['oauth']%self.tmpOAuthToken
         response = self.loadPage(self.url['base'], self.url['login']+";jsessionid="+self.cookies['JSESSIONID'], "POST", 
             self.postData['login'])
