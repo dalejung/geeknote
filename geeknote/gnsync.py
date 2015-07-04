@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import os, sys
@@ -127,7 +126,7 @@ class GNSync:
                 return n
 
         filedatas = list(map(self._get_filedata, files))
-        filedatas.sort(key=lambda x: x['date'], reverse=True)
+        filedatas.sort(key=lambda x: x.get('date', 0), reverse=True)
 
         for filedata in filedatas:
             if not self._is_dirty(filedata):
