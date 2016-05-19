@@ -119,7 +119,7 @@ class GNSync:
                 return None
             try:
                 n = GeekNote().getNote(guid)
-            except:
+            except Exception as err:
                 return None
 
             if n:
