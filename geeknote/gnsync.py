@@ -227,7 +227,11 @@ class GNSync:
             return None
 
         html, md = editor.convert_markdown(content)
-        meta = md.Meta
+        try:
+            meta = md.Meta
+        except:
+            meta = {}
+
         enml = editor.wrapENML(html)
 
         filedata = {}
